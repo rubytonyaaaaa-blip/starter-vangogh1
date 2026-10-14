@@ -301,7 +301,7 @@ function skyColor(x, y) {
     if (d < s.r * 2.5) {
       c = lerpColor(
         c,
-        color("#f2d34f"),
+        color("#eda839"),
         1 - d / (s.r * 2.5)
       );
     }
