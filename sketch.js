@@ -282,10 +282,37 @@ function drawBrushStroke(g, x, y, angle, col) {
 // ★★★★★★ 第 1 步 结束 ★★★★★★
 
 // ★★★★★★ 第 2 步 开始：把这里的 skyColor 函数整个换成 Qwen 写的版本 ★★★★★★
+
 function skyColor(x, y) {
-  // 临时版本：所有地方都是同一种蓝色
-  return color(40, 70, 160);
+  // 使用噪声生成自然变化的蓝色
+  let n = noise(x * 0.01, y * 0.01);
+
+  // 在深蓝色和浅蓝色之间渐变
+  let c = lerpColor(
+    color("#1b2a6b"),
+    color("#6c8fd8"),
+    n
+  );
+
+  // 靠近星星的位置加入黄色光晕
+  for (let s of stars) {
+    let d = dist(x, y, s.x, s.y);
+
+    if (d < s.r * 2.5) {
+      c = lerpColor(
+        c,
+        color("#f2d34f"),
+        1 - d / (s.r * 2.5)
+      );
+    }
+  }
+
+  // 每一笔使用略有不同的透明度
+  c.setAlpha(random(150, 230));
+
+  return c;
 }
+
 // ★★★★★★ 第 2 步 结束 ★★★★★★
 
 // ★★★★★★ 第 3 步 开始：把这里的 flowAngle 函数整个换成 Qwen 写的版本 ★★★★★★
