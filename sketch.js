@@ -355,7 +355,7 @@ function flowAngle(x, y) {
 
 function drawStar(s) {
   // 根据时间变化，让星星缓慢呼吸
-  let pulse = 1 + 0.08 * sin(frameCount * 0.1 + s.phase);
+  let pulse = 1 + 0.3 * sin(frameCount * 0.1 + s.phase);
   let r = s.r * pulse;
 
   noStroke();
