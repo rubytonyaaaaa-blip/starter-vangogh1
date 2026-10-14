@@ -336,11 +336,11 @@ function flowAngle(x, y) {
     let d = max(dist(x, y, s.x, s.y), 1);
 
     if (d < s.r * 4) {
-      let weight = 1 - d / (s.r * 4);
+      let weight = 1 - d / (s.r * 8);
 
       // 让风沿着星星周围旋转
-      vx += (-dy / d) * weight * 3;
-      vy += (dx / d) * weight * 3;
+      vx += (-dy / d) * weight * 8;
+      vy += (dx / d) * weight * 8;
     }
   }
 
