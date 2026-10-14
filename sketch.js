@@ -261,11 +261,24 @@ function draw() {
 
 // ★★★★★★ 第 1 步 开始：把这里的 drawBrushStroke 函数整个换成 Qwen 写的版本 ★★★★★★
 function drawBrushStroke(g, x, y, angle, col) {
-  // 临时版本：只点一个小点
+  g.push();
+  g.translate(x, y);
+  g.rotate(angle);
+
+  // 绘制短而粗、两端圆润的笔触
+  g.strokeCap(ROUND);
   g.stroke(col);
-  g.strokeWeight(2);
-  g.point(x, y);
+  g.strokeWeight(5);
+  g.line(-7, 0, 7, 0);
+
+  // 在笔触上方添加淡淡的亮边
+  g.stroke(255, 60);
+  g.strokeWeight(1.5);
+  g.line(-5, -1, 5, -1);
+
+  g.pop();
 }
+
 // ★★★★★★ 第 1 步 结束 ★★★★★★
 
 // ★★★★★★ 第 2 步 开始：把这里的 skyColor 函数整个换成 Qwen 写的版本 ★★★★★★
