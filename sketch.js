@@ -140,7 +140,7 @@ function setStatus(msg) {
 //  PART B — 作品：《星月夜》（致敬文森特·梵高，1889）
 // ---------------------------------------------------------------------
 
-const SKY_DEEP = "#14215e";
+const SKY_DEEP = "#101c49";
 const MAX_STARS = 12;
 // C 大调五声音阶（MIDI 编号），星星越多，音越高
 const STAR_NOTES = [72, 74, 76, 79, 81, 84, 86, 88, 91, 93, 96, 98];
@@ -170,15 +170,25 @@ function setup() {
 }
 
 // 一张新画布：深蓝色底，先放 3 颗星星和月亮，让天空一开始就有漩涡
+
 function resetSky() {
   paint.background(SKY_DEEP);
+
   stars = [
-    { x: width * 0.25, y: height * 0.22, r: 18, phase: 0 },
-    { x: width * 0.55, y: height * 0.35, r: 40, phase: 1 },
-    { x: width * 0.72, y: height * 0.15, r: 16, phase: 2 },
+    { x: width * 0.14, y: height * 0.15, r: 18, phase: 0 },
+    { x: width * 0.28, y: height * 0.29, r: 20, phase: 1 },
+    { x: width * 0.40, y: height * 0.13, r: 14, phase: 2 },
+    { x: width * 0.66, y: height * 0.18, r: 24, phase: 3 },
+    { x: width * 0.76, y: height * 0.33, r: 15, phase: 4 },
+    { x: width * 0.39, y: height * 0.48, r: 22, phase: 5 }
   ];
-  moon = { x: width * 0.86, y: height * 0.16 };
+
+  moon = {
+    x: width * 0.91,
+    y: height * 0.17
+  };
 }
+
 
 function newParticle() {
   return { x: random(width), y: random(height * 0.8), life: random(20, 60) };
@@ -284,91 +294,118 @@ if (started) {
 }
 
 // ★★★★★★ 第 1 步 开始：把这里的 drawBrushStroke 函数整个换成 Qwen 写的版本 ★★★★★★
+
 function drawBrushStroke(g, x, y, angle, col) {
   g.push();
   g.translate(x, y);
   g.rotate(angle);
 
-  // 绘制短而粗、两端圆润的笔触
   g.strokeCap(ROUND);
-  g.stroke(col);
-  g.strokeWeight(5);
-  g.line(-7, 0, 7, 0);
 
-  // 在笔触上方添加淡淡的亮边
-  g.stroke(255, 60);
-  g.strokeWeight(1.5);
-  g.line(-5, -1, 5, -1);
+  // 深色底层笔触
+  g.stroke(12, 29, 80, 100);
+  g.strokeWeight(7);
+  g.line(-9, 1, 9, 1);
+
+  // 主要油画颜色
+  g.stroke(col);
+  g.strokeWeight(4.5);
+  g.line(-8, 0, 8, 0);
+
+  // 蓝白色高光
+  g.stroke(215, 238, 255, 75);
+  g.strokeWeight(1.2);
+  g.line(-6, -1.5, 5, -1.5);
 
   g.pop();
 }
+
 
 // ★★★★★★ 第 1 步 结束 ★★★★★★
 
 // ★★★★★★ 第 2 步 开始：把这里的 skyColor 函数整个换成 Qwen 写的版本 ★★★★★★
 
-function skyColor(x, y) {
-  // 使用噪声生成自然变化的蓝色
-  let n = noise(x * 0.01, y * 0.01);
 
-  // 在深蓝色和浅蓝色之间渐变
+function skyColor(x, y) {
+  const n = noise(x * 0.006, y * 0.006);
+
   let c = lerpColor(
-    color("#1b2a6b"),
-    color("#6c8fd8"),
+    color("#163a89"),
+    color("#72b8df"),
     n
   );
 
-  // 靠近星星的位置加入黄色光晕
-  for (let s of stars) {
-    let d = dist(x, y, s.x, s.y);
+  // 为天空增加冷蓝色变化
+  const wave = noise(x * 0.014, y * 0.014);
+  c = lerpColor(c, color("#d5eafa"), wave * 0.35);
 
-    if (d < s.r * 2.5) {
+  // 星星周围产生黄绿色光晕
+  for (const s of stars) {
+    const d = dist(x, y, s.x, s.y);
+    const range = s.r * 3.5;
+
+    if (d < range) {
+      const glow = pow(1 - d / range, 1.5);
+
       c = lerpColor(
         c,
-        color("#eda839"),
-        1 - d / (s.r * 2.5)
+        color("#efaf47"),
+        glow * 0.85
       );
     }
   }
 
-  // 每一笔使用略有不同的透明度
-  c.setAlpha(random(150, 230));
-
+  c.setAlpha(random(155, 225));
   return c;
 }
+
 
 // ★★★★★★ 第 2 步 结束 ★★★★★★
 
 // ★★★★★★ 第 3 步 开始：把这里的 flowAngle 函数整个换成 Qwen 写的版本 ★★★★★★
 
+
 function flowAngle(x, y) {
-  // 利用噪声生成缓慢变化的风向
-  let base = noise(
-    x * 0.003,
-    y * 0.003,
-    frameCount * 0.002
+  const base = noise(
+    x * 0.0025,
+    y * 0.0025,
+    frameCount * 0.001
   ) * TWO_PI * 2;
 
-  // 基础风向
   let vx = cos(base);
   let vy = sin(base);
 
-  // 在每颗星星周围形成旋转漩涡
-  for (let s of stars) {
-    let dx = x - s.x;
-    let dy = y - s.y;
-    let d = max(dist(x, y, s.x, s.y), 1);
+  // 中央大型天空漩涡
+  const cx = width * 0.53;
+  const cy = height * 0.42;
 
-    if (d < s.r * 4) {
-      let weight = 1 - d / (s.r * 8);
+  const dx = x - cx;
+  const dy = y - cy;
+  const d = max(sqrt(dx * dx + dy * dy), 1);
 
-      // 让风沿着星星周围旋转
-      vx += (-dy / d) * weight * 8;
-      vy += (dx / d) * weight * 8;
+  const radius = min(width, height) * 0.35;
+
+  if (d < radius) {
+    const strength = (1 - d / radius) * 6;
+
+    vx += (-dy / d) * strength;
+    vy += (dx / d) * strength;
+  }
+
+  // 星星周围的小漩涡
+  for (const s of stars) {
+    const sx = x - s.x;
+    const sy = y - s.y;
+    const sd = max(sqrt(sx * sx + sy * sy), 1);
+
+    if (sd < s.r * 4) {
+      const strength = (1 - sd / (s.r * 4)) * 3;
+
+      vx += (-sy / sd) * strength;
+      vy += (sx / sd) * strength;
     }
   }
 
-  // 将风的方向转换成角度
   return atan2(vy, vx);
 }
 
