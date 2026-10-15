@@ -141,7 +141,7 @@ function setStatus(msg) {
 // ---------------------------------------------------------------------
 
 const SKY_DEEP = "#101c49";
-const MAX_STARS = 12;
+const MAX_STARS = 16;
 // C 大调五声音阶（MIDI 编号），星星越多，音越高
 const STAR_NOTES = [72, 74, 76, 79, 81, 84, 86, 88, 91, 93, 96, 98];
 
@@ -155,6 +155,13 @@ let showInfo = true;
 let starShapeMode = "auto";
 let shapeGestureArmed = true;
 let lastShapeSwitchAt = -1200;
+let lastStarGestureTime = {
+  Pointing_Up: -1000,
+  Thumb_Up: -1000
+};
+
+const STAR_GESTURE_COOLDOWN = 850;
+
 
 
 // 声音
@@ -229,7 +236,15 @@ if (started) {
   updateHands();
 
   for (const hand of hands) {
-    const g = hand.score >= 0.6 ? hand.gesture : "None";
+    
+const threshold =
+  (hand.gesture === "Pointing_Up" ||
+  hand.gesture === "Thumb_Up") ? 0.45 : 0.6;
+
+const g = hand.score >= threshold
+  ? hand.gesture
+  : "None";
+
 
     if (g === "Open_Palm") {
       palmOpen = true;
@@ -241,11 +256,28 @@ if (started) {
     }
 
     // 只在手势发生变化时执行
-    if (g !== "None" && g !== lastGesture[hand.side]) {
-      onGesture(g, hand);
-    }
+  const isStarGesture =
+  g === "Pointing_Up" || g === "Thumb_Up";
 
-    lastGesture[hand.side] = g;
+if (isStarGesture) {
+  const now = millis();
+
+  if (
+    now - lastStarGestureTime[g] >=
+    STAR_GESTURE_COOLDOWN
+  ) {
+    onGesture(g, hand);
+    lastStarGestureTime[g] = now;
+  }
+} else if (
+  g !== "None" &&
+  g !== lastGesture[hand.side]
+) {
+  onGesture(g, hand);
+}
+
+lastGesture[hand.side] = g;
+
   }
 
   if (hands.length === 0) {
