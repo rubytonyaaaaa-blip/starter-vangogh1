@@ -208,18 +208,38 @@ function startExperience() {
 
 function draw() {
   // 1. 手势
-  let palmOpen = false;
-  if (started) {
-    updateHands();
-    for (const hand of hands) {
-      const g = hand.score >= 0.6 ? hand.gesture : "None";
-      if (g === "Open_Palm") palmOpen = true;
-      if (g === "None") continue;
-      if (g !== lastGesture[hand.side]) onGesture(g, hand);
-      lastGesture[hand.side] = g;
+  
+let palmOpen = false;
+
+if (started) {
+  updateHands();
+
+  for (const hand of hands) {
+    const g = hand.score >= 0.6 ? hand.gesture : "None";
+
+    if (g === "Open_Palm") {
+      palmOpen = true;
     }
-    if (hands.length === 0) lastGesture = {};
+
+    // 手势松开后，才允许下一次形状切换
+    if (g !== "ILoveYou") {
+      shapeGestureArmed = true;
+    }
+
+    // 只在手势发生变化时执行
+    if (g !== "None" && g !== lastGesture[hand.side]) {
+      onGesture(g, hand);
+    }
+
+    lastGesture[hand.side] = g;
   }
+
+  if (hands.length === 0) {
+    lastGesture = {};
+    shapeGestureArmed = true;
+  }
+}
+
   wind = lerp(wind, palmOpen ? 1 : 0, 0.05);
   if (windNoise) {
     windNoise.amp(wind * 0.4, 0.1);
@@ -392,15 +412,30 @@ function drawStar(s) {
 
 function onGesture(g, hand) {
   
+
 if (g === "ILoveYou") {
-  starShapeMode = starShapeMode === "auto" ? "circle"
-                : starShapeMode === "circle" ? "square" : "auto";
+  const now = millis();
 
-  setStatus("星星形状：" +
-    ({auto:"圆方渐变", circle:"圆形", square:"正方形"})[starShapeMode]);
+  if (!shapeGestureArmed ||
+      now - lastShapeSwitchAt < 1200) {
+    return;
+  }
 
+  shapeGestureArmed = false;
+  lastShapeSwitchAt = now;
+
+  if (starShapeMode === "auto") {
+    starShapeMode = "circle";
+  } else if (starShapeMode === "circle") {
+    starShapeMode = "square";
+  } else {
+    starShapeMode = "auto";
+  }
+
+  setStatus("星星形状：" + starShapeMode);
   return;
 }
+
 
   // 获取食指指尖和手掌中心的位置
   let tip = hand.points[8];
