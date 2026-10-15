@@ -363,12 +363,13 @@ function drawStar(s) {
   // 绘制五层淡黄色光晕
   for (let i = 5; i >= 1; i--) {
     fill(255, 230, 120, 30);
-    circle(s.x, s.y, r * i * 0.8);
+    rectMode(CENTER);
+    square(s.x, s.y, r * i * 0.8);
   }
 
   // 绘制中心明亮的星核
   fill(255, 250, 220);
-  circle(s.x, s.y, r);
+  square(s.x, s.y, r);
 }
 
 // ★★★★★★ 第 4 步 结束 ★★★★★★
