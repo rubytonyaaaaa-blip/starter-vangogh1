@@ -391,6 +391,17 @@ function drawStar(s) {
 // ★★★★★★ 第 5 步 开始：把这里的 onGesture 函数整个换成 Qwen 写的版本 ★★★★★★
 
 function onGesture(g, hand) {
+  
+if (g === "ILoveYou") {
+  starShapeMode = starShapeMode === "auto" ? "circle"
+                : starShapeMode === "circle" ? "square" : "auto";
+
+  setStatus("星星形状：" +
+    ({auto:"圆方渐变", circle:"圆形", square:"正方形"})[starShapeMode]);
+
+  return;
+}
+
   // 获取食指指尖和手掌中心的位置
   let tip = hand.points[8];
   let palm = hand.points[9];
