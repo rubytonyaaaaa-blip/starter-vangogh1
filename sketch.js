@@ -353,24 +353,38 @@ function flowAngle(x, y) {
 
 // ★★★★★★ 第 4 步 开始：把这里的 drawStar 函数整个换成 Qwen 写的版本 ★★★★★★
 
-function drawStar(s) {
-  // 根据时间变化，让星星缓慢呼吸
-  let pulse = 1 + 0.3 * sin(frameCount * 0.1 + s.phase);
-  let r = s.r * pulse;
 
+function drawStar(s) {
+  push();
+  rectMode(CENTER);
   noStroke();
 
-  // 绘制五层淡黄色光晕
-  for (let i = 5; i >= 1; i--) {
-    fill(255, 230, 120, 30);
-    rectMode(CENTER);
-    square(s.x, s.y, r * i * 0.8);
+  const pulse = 1 + 0.08 * sin(frameCount * 0.1 + s.phase);
+  const r = s.r * pulse;
+
+  // 多层正方形渐变光晕
+  for (let i = 7; i >= 1; i--) {
+    const size = r * (1 + i * 0.75);
+    const alpha = map(i, 7, 1, 7, 65);
+
+    fill(255, 185 + (7 - i) * 8, 60, alpha);
+    square(s.x, s.y, size);
   }
 
-  // 绘制中心明亮的星核
-  fill(255, 250, 220);
-  square(s.x, s.y, r);
+  // 内层金色柔光
+  fill(255, 205, 90, 115);
+  square(s.x, s.y, r * 2.1);
+
+  fill(255, 230, 145, 190);
+  square(s.x, s.y, r * 1.45);
+
+  // 暖白色星星中心
+  fill(255, 250, 215, 245);
+  square(s.x, s.y, r * 0.85);
+
+  pop();
 }
+
 
 // ★★★★★★ 第 4 步 结束 ★★★★★★
 
