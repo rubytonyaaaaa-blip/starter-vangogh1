@@ -152,6 +152,10 @@ let moon = null;      // 月亮：{x, y}
 let lastGesture = {};
 let wind = 0;
 let showInfo = true;
+let starShapeMode = "auto";
+let shapeGestureArmed = true;
+let lastShapeSwitchAt = -1200;
+
 
 // 声音
 let chime, chimeEnv;  // 星星的叮声
@@ -374,6 +378,7 @@ function flowAngle(x, y) {
 // ★★★★★★ 第 4 步 开始：把这里的 drawStar 函数整个换成 Qwen 写的版本 ★★★★★★
 
 
+
 function drawStar(s) {
   push();
   rectMode(CENTER);
@@ -382,28 +387,45 @@ function drawStar(s) {
   const pulse = 1 + 0.08 * sin(frameCount * 0.1 + s.phase);
   const r = s.r * pulse;
 
-  // 多层正方形渐变光晕
-  for (let i = 7; i >= 1; i--) {
-    const size = r * (1 + i * 0.75);
-    const alpha = map(i, 7, 1, 7, 65);
-
-    fill(255, 185 + (7 - i) * 8, 60, alpha);
-    square(s.x, s.y, size);
+  // 自动模式：圆形和正方形之间平滑变化
+  let morph;
+  if (starShapeMode === "circle") {
+    morph = 0;
+  } else if (starShapeMode === "square") {
+    morph = 1;
+  } else {
+    morph = (sin(frameCount * 0.025 + s.phase) + 1) / 2;
   }
 
-  // 内层金色柔光
-  fill(255, 205, 90, 115);
-  square(s.x, s.y, r * 2.1);
+  // 使用圆角矩形实现形状过渡
+  function drawShape(size) {
+    const corner = (size / 2) * (1 - morph);
+    rect(s.x, s.y, size, size, corner);
+  }
 
-  fill(255, 230, 145, 190);
-  square(s.x, s.y, r * 1.45);
+  // 外层金黄色渐变光晕
+  for (let i = 7; i >= 1; i--) {
+    const size = r * (1 + i * 0.75);
+    const alpha = map(i, 7, 1, 6, 55);
 
-  // 暖白色星星中心
+    fill(255, 185 + (7 - i) * 8, 60, alpha);
+    drawShape(size);
+  }
+
+  // 内层柔和光晕
+  fill(255, 205, 90, 110);
+  drawShape(r * 2.1);
+
+  fill(255, 230, 145, 185);
+  drawShape(r * 1.45);
+
+  // 暖白色中心
   fill(255, 250, 215, 245);
-  square(s.x, s.y, r * 0.85);
+  drawShape(r * 0.85);
 
   pop();
 }
+
 
 
 // ★★★★★★ 第 4 步 结束 ★★★★★★
@@ -412,6 +434,7 @@ function drawStar(s) {
 
 function onGesture(g, hand) {
   
+
 
 if (g === "ILoveYou") {
   const now = millis();
@@ -432,9 +455,16 @@ if (g === "ILoveYou") {
     starShapeMode = "auto";
   }
 
-  setStatus("星星形状：" + starShapeMode);
+  setStatus("星星形状：" +
+    ({
+      auto: "自动渐变",
+      circle: "圆形",
+      square: "正方形"
+    })[starShapeMode]);
+
   return;
 }
+
 
 
   // 获取食指指尖和手掌中心的位置
